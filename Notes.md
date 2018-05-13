@@ -16,7 +16,7 @@ from numpy import array, arange # Importing only array and arange from numpy
 
 #### R
 
-Many libraries are selected/imported by default in RStudio. If not, you have to import them using the `library` function
+Many libraries are selected/imported by default in RStudio. If not, you have to import them using the `library` function.
 
 ```R
 library(ggplot2) # Importing ggplot2
@@ -77,6 +77,50 @@ dataset$Age <- ifelse(is.na(dataset$Age), ave(dataset$Age, FUN = function(x) mea
     na.rm = TRUE)), dataset$Age)
 dataset$Salary <- ifelse(is.na(dataset$Salary), ave(dataset$Salary, FUN = function(x) mean(x,
     na.rm = TRUE)), dataset$Salary)
+```
+
+### Categorial Data
+
+#### Python
+
+Categorial data contains a fixed number of categories. Machine learning algorithms are based on mathematical equations and therefore can only handle _numbers_.  This means, if the categorial data are _text_, we have to encode the categories by replacing them with _numbers_.
+
+In `sklearn.preprocessing` there are several functions for encoding, like `LabelEncoder` and `OneHotEncoder`.
+
+-   `LabelEncoder`: This encoder replaces every category (_text_) by a _number_.
+-   `OneHotEncoder`: This encoder adds dummy variables (columns) for every category.
+
+As `LabelEncoder` replaces _text_ with _numbers_, this encoding is not useful, if there is **no logical order** within the categories Instead use `OneHotEncoder` in addition.
+
+_Since scikit-learn>0.20 there is a new Function called `CategoricalEncoder`. This encodes categorial data into a one-hot-encode or ordinal form_.
+
+```Python
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+# Encoding the Independent Variable
+
+labelencoder_X = LabelEncoder()
+X.iloc[:, 0] = labelencoder_X.fit_transform(X.iloc[:, 0])
+
+## No logical order within the categories? Use OneHotEncoder in addition
+onehotencoder = OneHotEncoder(categorical_features=[0], sparse=False)
+X = onehotencoder.fit_transform(X)
+
+# Encoding the Dependent Variable
+labelencoder_y = LabelEncoder()
+y = labelencoder_y.fit_transform(y)
+```
+
+#### R
+
+With the function `factor` we can encode our _text_ categories into _numbers_.
+
+```R
+# Encoding categorical data
+dataset$Country <- factor(dataset$Country, levels = c("France", "Spain", "Germany"),
+    labels = c(1, 2, 3))
+dataset$Purchased <- factor(dataset$Purchased, levels = c("No", "Yes"), labels = c(0,
+    1))
 ```
 
 ## Part 2 - Regression
