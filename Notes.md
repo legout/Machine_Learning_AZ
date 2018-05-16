@@ -51,12 +51,12 @@ dataset <- read.csv("Data.csv")
 
 ### Missing Data
 
-#### Python
-
 How to handle missing data in the dataset.
 
 1.  **Removing rows** which includes missing data in one or more columns. However, this is not very useful, if we only have a small number of rows/data or if we there are many columns with missing data
 2.  Filling missing data with the **mean, minimum, maximum ...** of other rows.
+
+#### Python
 
 This can be done by the function `Imputer` from `sklearn.preprocessing`.
 
@@ -70,7 +70,7 @@ X.iloc[:, 1:3] = imputer.transform(X.iloc[:, 1:3])
 
 #### R
 
-Here we are using the function `ifelse` to decide wether there are missing data (_na_) or not. If so, we are using the function `ave` calculate the **mean**.
+Here we are using the function `ifelse` to decide wether there are missing data (_na_) or not. If so, we are using the function `ave` to calculate the **mean**.
 
 ```R
 dataset$Age <- ifelse(is.na(dataset$Age), ave(dataset$Age, FUN = function(x) mean(x,
@@ -81,14 +81,14 @@ dataset$Salary <- ifelse(is.na(dataset$Salary), ave(dataset$Salary, FUN = functi
 
 ### Categorial Data
 
-#### Python
-
 Categorial data contains a fixed number of categories. Machine learning algorithms are based on mathematical equations and therefore can only handle _numbers_.  This means, if the categorial data are _text_, we have to encode the categories by replacing them with _numbers_.
+
+#### Python
 
 In `sklearn.preprocessing` there are several functions for encoding, like `LabelEncoder` and `OneHotEncoder`.
 
 -   `LabelEncoder`: This encoder replaces every category (_text_) by a _number_.
--   `OneHotEncoder`: This encoder adds dummy variables (columns) for every category.
+-   `OneHotEncoder`: This encoder adds dummy variables (columns) for each category. In this columns the value of the row is _1_ for one category and _0_ for each other.
 
 As `LabelEncoder` replaces _text_ with _numbers_, this encoding is not useful, if there is **no logical order** within the categories Instead use `OneHotEncoder` in addition.
 
@@ -121,6 +121,75 @@ dataset$Country <- factor(dataset$Country, levels = c("France", "Spain", "German
     labels = c(1, 2, 3))
 dataset$Purchased <- factor(dataset$Purchased, levels = c("No", "Yes"), labels = c(0,
     1))
+```
+
+### Splitting the Dataset
+
+It is useful to split the dataset into a _training set_ and a _test set_, to proof if the machine learning model is stable.
+
+If the model performance on the _training set_ is much better than the performance on the _test set_, the model did not generalize well. It rather learned the correlation between the features and the labels including the noise. This is typically called **Overfitting**.
+
+#### Python
+
+There is the function `train_test_split` from `sklearn.model_selection` fot splitting datasets.
+
+```Python
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+```
+
+#### R
+
+The library `caTools`includes the function `sample.split` for splitting the dataset.
+
+```R
+library(caTools)
+set.seed(123) # seed to get repeatable results
+split <- sample.split(dataset$Purchased, SplitRatio = 0.8)
+training_set <- subset(dataset, split == TRUE)
+test_set <- subset(dataset, split == FALSE)
+```
+
+### Feature Scaling
+
+Many machine learning models are based on the _Euclidean distance d_. The _Euclidean distance_ of point 1 with coordinates $(x1, y1)$ and point 2 with coordinates $(x2, y2)$ is:
+
+$$d = \sqrt{(x2-x1)^2+(y2-y1)^2}$$
+
+This means, if the range of the data is not in the same scale, _d_ would be dominated by the data with the largest scale. Therefore the _features_ should be scaled before training a machine learning model.
+
+There are several ways for scaling the data. The two most common are:
+
+-   Standardization: For every observation of a feature the mean of the feature is withdrawn, divided by the standard deviation
+
+$$x_{stand} = \frac{x-\bar{x}}{\sigma(x)}$$
+
+-   Normalization: The minimum of the feature is substraced from the observation, divided by the difference of the maximum and the minimum of the feature.
+
+$$x_{norm} = \frac{x-x_{min}}{x_{max}-x_{min}}$$
+
+#### Python
+
+In `sklearn.preprocessing` there are many functions for feature scaling, e.g. `StandardScaler` and `Normalizer`
+
+```Python
+from sklearn.preprocessing import StandardScaler, Normalizer
+
+sc_X = StandardScaler()
+X_train = sc_X.fit_transform(X_train) # The scaler is fitted to the training set followed by transforming the training set
+X_test = sc_X.transform(X_test) # The testset is transformed with the scaler fitted  to the training set
+sc_y = StandardScaler()
+y_train = sc_y.fit_transform(y_train.reshape(-1, 1)) # The labels are fitted and transformed using an other scaler
+```
+
+#### R
+
+Use `scale` for feature scaling in R.
+
+```R
+# Scaling can only be done on numeric data. Country and Purchased are `factors` and therefore not numeric in R
+training_set[, 2:3] <- scale(training_set[, 2:3])
+test_set[, 2:3] <- scale(test_set[, 2:3])
 ```
 
 ## Part 2 - Regression
